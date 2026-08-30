@@ -1,4 +1,3 @@
-// Explore Projects button
 
 const exploreButton = document.querySelector(".primary-btn");
 
@@ -8,8 +7,6 @@ exploreButton.addEventListener("click", function (event) {
 });
 
 
-// Create Project button
-
 const createButton = document.querySelector(".secondary-btn");
 
 createButton.addEventListener("click", function (event) {
@@ -17,8 +14,6 @@ createButton.addEventListener("click", function (event) {
     alert("Project creation feature will be added in the next phase.");
 });
 
-
-// Get Started button
 
 const getStartedButton = document.querySelector(".cta-btn");
 
