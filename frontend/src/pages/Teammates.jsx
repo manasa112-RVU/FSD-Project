@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import API_URL from "../api";
 
 function Teammates() {
     const [students, setStudents] = useState([]);
@@ -11,7 +12,7 @@ function Teammates() {
         const fetchStudents = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/users"
+                    `${API_URL}/api/users`
                 );
 
                 if (!response.ok) {

@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import API_URL from "../api";
 
 function Projects() {
     const [projects, setProjects] = useState([]);
@@ -22,7 +23,7 @@ function Projects() {
         const fetchProjects = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/projects"
+                    `${API_URL}/api/projects`
                 );
 
                 if (!response.ok) {
@@ -56,7 +57,7 @@ function Projects() {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/projects/${projectId}/join`,
+                `${API_URL}/api/projects/${projectId}/join`,
                 {
                     method: "POST",
                     headers: {

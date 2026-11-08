@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import API_URL from "../api";
 
 function CreateProject() {
     const [formData, setFormData] = useState({
@@ -45,7 +46,7 @@ function CreateProject() {
 
         try {
             const response = await fetch(
-                "http://localhost:5000/api/projects",
+                `${API_URL}/api/projects`,
                 {
                     method: "POST",
                     headers: {

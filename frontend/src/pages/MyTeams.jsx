@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import API_URL from "../api";
 
 function MyTeams() {
     const [projects, setProjects] = useState([]);
@@ -28,7 +29,7 @@ function MyTeams() {
                 }
 
                 const response = await fetch(
-                    "http://localhost:5000/api/projects/my-teams",
+                    `${API_URL}/api/projects/my-teams`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
