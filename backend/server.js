@@ -10,8 +10,28 @@ dotenv.config();
 // Create Express application
 const app = express();
 
+// Allowed frontend URLs
+const allowedOrigins = [
+    "https://teamsphere.netlify.app",
+    "http://localhost:5173"
+];
+
+// CORS configuration
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests without an origin (such as server-side tools)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Import routes
@@ -40,6 +60,7 @@ const startServer = async () => {
         app.listen(PORT, () => {
             console.log(`TeamSphere server running on port ${PORT}`);
         });
+
     } catch (error) {
         console.error("Failed to start server:", error.message);
         process.exit(1);
