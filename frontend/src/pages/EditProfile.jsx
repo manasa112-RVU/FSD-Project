@@ -19,7 +19,8 @@ function EditProfile() {
         department: user?.department || "",
         year: user?.year || "",
         skills: user?.skills?.join(", ") || "",
-        interests: user?.interests?.join(", ") || ""
+        interests: user?.interests?.join(", ") || "",
+        aboutMe: user?.aboutMe || ""
     });
 
     const [message, setMessage] = useState("");
@@ -68,7 +69,8 @@ function EditProfile() {
                         interests: formData.interests
                             .split(",")
                             .map(interest => interest.trim())
-                            .filter(Boolean)
+                            .filter(Boolean),
+                        aboutMe: formData.aboutMe.trim()
                     })
                 }
             );
@@ -148,6 +150,7 @@ function EditProfile() {
                         </div>
 
                         <h2>{user.name}</h2>
+
                         <p className="profile-user-email">
                             {user.email}
                         </p>
@@ -188,6 +191,7 @@ function EditProfile() {
 
                         <form onSubmit={handleSubmit}>
 
+                            {/* Full Name */}
                             <div className="profile-form-group">
                                 <label>Full Name</label>
                                 <input
@@ -200,6 +204,7 @@ function EditProfile() {
                                 />
                             </div>
 
+                            {/* Email */}
                             <div className="profile-form-group">
                                 <label>Email Address</label>
                                 <input
@@ -207,9 +212,12 @@ function EditProfile() {
                                     value={user.email}
                                     disabled
                                 />
-                                <small>Email address cannot be changed here.</small>
+                                <small>
+                                    Email address cannot be changed here.
+                                </small>
                             </div>
 
+                            {/* Department and Year */}
                             <div className="profile-form-row">
 
                                 <div className="profile-form-group">
@@ -242,6 +250,7 @@ function EditProfile() {
 
                             </div>
 
+                            {/* Skills */}
                             <div className="profile-form-group">
                                 <label>Skills</label>
                                 <input
@@ -256,6 +265,7 @@ function EditProfile() {
                                 </small>
                             </div>
 
+                            {/* Interests */}
                             <div className="profile-form-group">
                                 <label>Interests</label>
                                 <input
@@ -270,18 +280,38 @@ function EditProfile() {
                                 </small>
                             </div>
 
+                            {/* About Me */}
+                            <div className="profile-form-group">
+                                <label>About Me</label>
+                                <textarea
+                                    name="aboutMe"
+                                    value={formData.aboutMe}
+                                    onChange={handleChange}
+                                    placeholder="Tell other students about yourself, your interests, skills and the projects you enjoy working on..."
+                                    rows="5"
+                                    maxLength="500"
+                                />
+                                <small>
+                                    Write a short introduction about yourself
+                                    (maximum 500 characters).
+                                </small>
+                            </div>
+
+                            {/* Success Message */}
                             {message && (
                                 <div className="profile-success-message">
                                     ✓ {message}
                                 </div>
                             )}
 
+                            {/* Error Message */}
                             {error && (
                                 <div className="profile-error-message">
                                     {error}
                                 </div>
                             )}
 
+                            {/* Form Actions */}
                             <div className="profile-form-actions">
 
                                 <Link

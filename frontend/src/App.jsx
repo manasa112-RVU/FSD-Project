@@ -12,7 +12,7 @@ import Teammates from "./pages/Teammates";
 import MyTeams from "./pages/MyTeams";
 import EditProfile from "./pages/EditProfile";
 import EditProject from "./pages/EditProject";
-
+import ContactStudent from "./pages/ContactStudent";
 import "./App.css";
 
 function App() {
@@ -40,6 +40,9 @@ function App() {
             {/* Profile */}
             <Route path="/profile" element={<EditProfile />} />
             <Route path="/edit-profile" element={<EditProfile />} />
+
+            {/* Contact Student */}
+            <Route path="/contact-student/:id" element={<ContactStudent />} />
 
             {/* Fallback */}
             <Route

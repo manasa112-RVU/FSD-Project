@@ -268,13 +268,13 @@ function Teammates() {
                                         </div>
                                     </div>
 
-                                    <a
-                                        href={`mailto:${student.email}`}
+                                    <Link
+                                        to={`/contact-student/${student._id}`}
                                         className="teammate-contact-button"
+                                    
                                     >
-                                        Contact Student 
-                                    </a>
-
+                                        Contact Student
+                                    </Link>
                                 </div>
                             );
                         })}

@@ -37,6 +37,18 @@ const projectSchema = new mongoose.Schema(
         teamMembers: {
             type: [String],
             default: []
+        },
+
+        // Maximum team size, including the project creator
+        maxTeamSize: {
+            type: Number,
+            required: true,
+            default: 5,
+            min: 1,
+            validate: {
+                validator: Number.isInteger,
+                message: "Team size must be a whole number."
+            }
         }
     },
     { timestamps: true }

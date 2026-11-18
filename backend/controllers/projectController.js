@@ -2,14 +2,41 @@
 const Project = require("../models/Project");
 const User = require("../models/User");
 
+// Ensure the creator is included and avoid duplicate members
+const getUniqueTeamMembers = (project) => {
+    return [...new Set([
+        project.creatorEmail,
+        ...(project.teamMembers || [])
+    ].filter(Boolean))];
+};
+
 // Create a new project
 const createProject = async (req, res) => {
     try {
-        const { title, description, category, skillsRequired } = req.body;
+        const {
+            title,
+            description,
+            category,
+            skillsRequired,
+            maxTeamSize
+        } = req.body;
 
         if (!title || !description || !category) {
             return res.status(400).json({
                 message: "Please provide all required project details."
+            });
+        }
+
+        const teamSize = Number(maxTeamSize);
+
+        if (
+            maxTeamSize === undefined ||
+            maxTeamSize === null ||
+            !Number.isInteger(teamSize) ||
+            teamSize < 1
+        ) {
+            return res.status(400).json({
+                message: "Please enter a valid maximum team size."
             });
         }
 
@@ -26,8 +53,10 @@ const createProject = async (req, res) => {
             description,
             category,
             skillsRequired: skillsRequired || [],
+            maxTeamSize: teamSize,
             createdBy: user.name,
-            creatorEmail: user.email
+            creatorEmail: user.email,
+            teamMembers: [user.email]
         });
 
         await newProject.save();
@@ -49,7 +78,14 @@ const createProject = async (req, res) => {
 const getProjects = async (req, res) => {
     try {
         const projects = await Project.find().sort({ createdAt: -1 });
-        res.status(200).json(projects);
+
+        const result = projects.map(project => ({
+            ...project.toObject(),
+            teamMembers: getUniqueTeamMembers(project),
+            maxTeamSize: project.maxTeamSize || 5
+        }));
+
+        res.status(200).json(result);
 
     } catch (error) {
         res.status(500).json({
@@ -79,17 +115,30 @@ const joinProject = async (req, res) => {
             });
         }
 
-        if (project.teamMembers.includes(email)) {
+        const members = getUniqueTeamMembers(project);
+
+        if (members.includes(email)) {
             return res.status(400).json({
                 message: "You have already joined this project."
             });
         }
 
-        project.teamMembers.push(email);
+        const maxSize = project.maxTeamSize || 5;
+
+        if (members.length >= maxSize) {
+            return res.status(400).json({
+                message: "This project team is already full."
+            });
+        }
+
+        project.teamMembers = [...members, email];
+
         await project.save();
 
         res.status(200).json({
-            message: "Successfully joined the project!"
+            message: "Successfully joined the project!",
+            teamMembers: project.teamMembers,
+            maxTeamSize: maxSize
         });
 
     } catch (error) {
@@ -115,7 +164,9 @@ const getMyTeams = async (req, res) => {
         const students = await User.find().select("name email");
 
         const result = projects.map(project => {
-            const teamMemberDetails = project.teamMembers.map(memberEmail => {
+            const members = getUniqueTeamMembers(project);
+
+            const teamMemberDetails = members.map(memberEmail => {
                 const student = students.find(
                     user => user.email === memberEmail
                 );
@@ -128,6 +179,8 @@ const getMyTeams = async (req, res) => {
 
             return {
                 ...project.toObject(),
+                teamMembers: members,
+                maxTeamSize: project.maxTeamSize || 5,
                 teamMemberDetails
             };
         });
@@ -162,14 +215,46 @@ const updateProject = async (req, res) => {
             });
         }
 
-        const { title, description, category, skillsRequired } = req.body;
+        const {
+            title,
+            description,
+            category,
+            skillsRequired,
+            maxTeamSize
+        } = req.body;
+
+        const members = getUniqueTeamMembers(project);
+
+        if (maxTeamSize !== undefined) {
+            const teamSize = Number(maxTeamSize);
+
+            if (
+                !Number.isInteger(teamSize) ||
+                teamSize < 1
+            ) {
+                return res.status(400).json({
+                    message: "Please enter a valid maximum team size."
+                });
+            }
+
+            if (teamSize < members.length) {
+                return res.status(400).json({
+                    message: `Maximum team size cannot be less than the current ${members.length} team members.`
+                });
+            }
+
+            project.maxTeamSize = teamSize;
+        }
 
         if (title !== undefined) project.title = title;
         if (description !== undefined) project.description = description;
         if (category !== undefined) project.category = category;
+
         if (skillsRequired !== undefined) {
             project.skillsRequired = skillsRequired;
         }
+
+        project.teamMembers = members;
 
         await project.save();
 
@@ -186,10 +271,46 @@ const updateProject = async (req, res) => {
     }
 };
 
+// Delete a project
+const deleteProject = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const email = req.user.email;
+
+        const project = await Project.findById(id);
+
+        if (!project) {
+            return res.status(404).json({
+                message: "Project not found."
+            });
+        }
+
+        // Only the creator can delete the project
+        if (project.creatorEmail !== email) {
+            return res.status(403).json({
+                message: "You are not allowed to delete this project."
+            });
+        }
+
+        await Project.findByIdAndDelete(id);
+
+        res.status(200).json({
+            message: "Project deleted successfully!"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error deleting project",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createProject,
     getProjects,
     joinProject,
     getMyTeams,
-    updateProject
+    updateProject,
+    deleteProject
 };

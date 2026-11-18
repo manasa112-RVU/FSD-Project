@@ -51,7 +51,8 @@ const registerUser = async (req, res) => {
             department,
             year,
             skills: skills || [],
-            interests: interests || []
+            interests: interests || [],
+            aboutMe: ""
         });
 
         await user.save();
@@ -65,7 +66,8 @@ const registerUser = async (req, res) => {
                 department: user.department,
                 year: user.year,
                 skills: user.skills,
-                interests: user.interests
+                interests: user.interests,
+                aboutMe: user.aboutMe
             }
         });
 
@@ -115,13 +117,13 @@ const loginUser = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-           {
+            {
                 id: user._id,
                 email: user.email
             },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
-      );
+        );
 
         // Send complete student information
         res.status(200).json({
@@ -134,7 +136,8 @@ const loginUser = async (req, res) => {
                 department: user.department,
                 year: user.year,
                 skills: user.skills,
-                interests: user.interests
+                interests: user.interests,
+                aboutMe: user.aboutMe || ""
             }
         });
 
@@ -148,10 +151,9 @@ const loginUser = async (req, res) => {
 
 
 // Update student profile
-
 const updateProfile = async (req, res) => {
     try {
-        // Get email from the verified JWT token
+        // Get email from verified JWT token
         const email = req.user.email;
 
         const {
@@ -159,7 +161,8 @@ const updateProfile = async (req, res) => {
             department,
             year,
             skills,
-            interests
+            interests,
+            aboutMe
         } = req.body;
 
         const user = await User.findOne({ email });
@@ -170,11 +173,17 @@ const updateProfile = async (req, res) => {
             });
         }
 
-        user.name = name || user.name;
-        user.department = department || user.department;
-        user.year = year || user.year;
-        user.skills = skills || user.skills;
-        user.interests = interests || user.interests;
+        // Update existing profile details
+        if (name !== undefined) user.name = name;
+        if (department !== undefined) user.department = department;
+        if (year !== undefined) user.year = year;
+        if (skills !== undefined) user.skills = skills;
+        if (interests !== undefined) user.interests = interests;
+
+        // Save About Me introduction
+        if (aboutMe !== undefined) {
+            user.aboutMe = aboutMe;
+        }
 
         await user.save();
 
@@ -187,7 +196,8 @@ const updateProfile = async (req, res) => {
                 department: user.department,
                 year: user.year,
                 skills: user.skills,
-                interests: user.interests
+                interests: user.interests,
+                aboutMe: user.aboutMe || ""
             }
         });
 
@@ -198,8 +208,6 @@ const updateProfile = async (req, res) => {
         });
     }
 };
-
-
 
 
 // Export functions

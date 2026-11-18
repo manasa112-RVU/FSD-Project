@@ -20,6 +20,18 @@ function ProjectDetails() {
         }
     })();
 
+    // Get unique members, including the creator
+    const getTeamMembers = (currentProject) => {
+        const members = (currentProject.teamMembers || []).map(member =>
+            typeof member === "string" ? member : member?.email
+        );
+
+        return [...new Set([
+            currentProject.creatorEmail,
+            ...members
+        ].filter(Boolean))];
+    };
+
     // Fetch project details
     useEffect(() => {
         const fetchProject = async () => {
@@ -52,14 +64,25 @@ function ProjectDetails() {
         fetchProject();
     }, [id]);
 
+    // Team information
+    const teamMembers = project ? getTeamMembers(project) : [];
+
+    const maxTeamSize = Number(project?.maxTeamSize) || 5;
+
+    const memberCount = teamMembers.length;
+
+    const remainingSpots = Math.max(
+        0,
+        maxTeamSize - memberCount
+    );
+
+    const isFull = memberCount >= maxTeamSize;
+
     // Check project creator and member
     const isCreator = project?.creatorEmail === user?.email;
 
-    const isMember = (project?.teamMembers || []).some(member => {
-        return typeof member === "string"
-            ? member === user?.email
-            : member?.email === user?.email;
-    });
+    const isMember =
+        !!user?.email && teamMembers.includes(user.email);
 
     // Join project
     const handleJoinProject = async () => {
@@ -67,6 +90,11 @@ function ProjectDetails() {
 
         if (!user || !token) {
             setJoinMessage("Please login first to join this project.");
+            return;
+        }
+
+        if (isFull) {
+            setJoinMessage("This project team is already full.");
             return;
         }
 
@@ -97,10 +125,8 @@ function ProjectDetails() {
             if (response.ok) {
                 setProject(previous => ({
                     ...previous,
-                    teamMembers: [
-                        ...(previous.teamMembers || []),
-                        user.email
-                    ]
+                    teamMembers: data.teamMembers ||
+                        [...getTeamMembers(previous), user.email]
                 }));
             }
 
@@ -166,7 +192,7 @@ function ProjectDetails() {
 
                     <div className="project-details-meta">
                         <span>
-                            👥 {(project.teamMembers || []).length} Team Members
+                            {memberCount}/{maxTeamSize} Team Members
                         </span>
 
                         <span>
@@ -216,11 +242,11 @@ function ProjectDetails() {
 
                             <div className="project-details-members">
 
-                                {(project.teamMembers || []).length > 0 ? (
-                                    project.teamMembers.map((member, index) => (
+                                {teamMembers.length > 0 ? (
+                                    teamMembers.map((member, index) => (
                                         <div
                                             className="project-details-member"
-                                            key={index}
+                                            key={member || index}
                                         >
                                             <div className="project-details-avatar">
                                                 {getMemberName(member)
@@ -256,27 +282,79 @@ function ProjectDetails() {
                         </div>
 
                         <div className="project-details-sidebar-info">
-                            <span>CURRENT MEMBERS</span>
+                            <span>TEAM CAPACITY</span>
                             <strong>
-                                {(project.teamMembers || []).length} students
+                                {memberCount} / {maxTeamSize} Members
                             </strong>
                         </div>
 
+                        {/* Team Capacity Progress */}
+                        <div className="details-capacity">
+
+                            <div className="details-capacity-info">
+                                <span>
+                                    {isFull
+                                        ? "Team is full"
+                                        : `${remainingSpots} ${
+                                            remainingSpots === 1
+                                                ? "spot"
+                                                : "spots"
+                                        } available`}
+                                </span>
+
+                                <strong>
+                                    {Math.round(
+                                        (memberCount / maxTeamSize) * 100
+                                    )}%
+                                </strong>
+                            </div>
+
+                            <div className="details-capacity-track">
+                                <div
+                                    className={`details-capacity-fill ${
+                                        isFull ? "full" : ""
+                                    }`}
+                                    style={{
+                                        width: `${Math.min(
+                                            100,
+                                            (memberCount / maxTeamSize) * 100
+                                        )}%`
+                                    }}
+                                />
+                            </div>
+
+                        </div>
+
+                        {/* Action Buttons */}
                         {isCreator ? (
+
                             <Link
                                 to={`/edit-project/${project._id}`}
                                 className="project-details-join-button"
                             >
                                 Edit Your Project →
                             </Link>
+
                         ) : isMember ? (
+
                             <button
                                 className="project-details-joined-button"
                                 disabled
                             >
                                 ✓ Already Joined
                             </button>
+
+                        ) : isFull ? (
+
+                            <button
+                                className="project-details-full-button"
+                                disabled
+                            >
+                                Team Full
+                            </button>
+
                         ) : user ? (
+
                             <button
                                 className="project-details-join-button"
                                 onClick={handleJoinProject}
@@ -284,13 +362,16 @@ function ProjectDetails() {
                             >
                                 {joining ? "Joining..." : "Join Project →"}
                             </button>
+
                         ) : (
+
                             <Link
                                 to="/login"
                                 className="project-details-join-button"
                             >
                                 Login to Join →
                             </Link>
+
                         )}
 
                         {joinMessage && (

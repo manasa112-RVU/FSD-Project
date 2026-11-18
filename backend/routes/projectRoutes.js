@@ -7,7 +7,8 @@ const {
     getProjects,
     joinProject,
     getMyTeams,
-    updateProject
+    updateProject,
+    deleteProject
 } = require("../controllers/projectController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -23,5 +24,8 @@ router.get("/my-teams", authMiddleware, getMyTeams);
 router.put("/:id", authMiddleware, updateProject);
 
 router.post("/:id/join", authMiddleware, joinProject);
+
+// Delete a project - creator only
+router.delete("/:id", authMiddleware, deleteProject);
 
 module.exports = router;

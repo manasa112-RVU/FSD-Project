@@ -5442,3 +5442,385 @@ footer p {
         height: 45px;
     }
 }
+
+
+/* Team capacity in Explore Projects */
+
+.explore-team-capacity {
+    margin-top: 20px;
+}
+
+.explore-capacity-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #66677c;
+}
+
+.explore-capacity-info strong {
+    color: #25264b;
+    font-weight: 600;
+}
+
+.explore-capacity-track {
+    width: 100%;
+    height: 7px;
+    background: #eeecf7;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.explore-capacity-fill {
+    height: 100%;
+    background: #7057e8;
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.explore-capacity-fill.full {
+    background: #dc5656;
+}
+
+/* Full team button */
+
+.explore-card-button.team-full {
+    background: #fceaea;
+    color: #c34444;
+    border: 1px solid #f3cccc;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+
+/* Project Details - Team Capacity */
+
+.details-capacity {
+    margin: 20px 0;
+}
+
+.details-capacity-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 9px;
+    color: #66677c;
+    font-size: 13px;
+}
+
+.details-capacity-info strong {
+    color: #25264b;
+}
+
+.details-capacity-track {
+    width: 100%;
+    height: 8px;
+    background: #eeecf7;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.details-capacity-fill {
+    height: 100%;
+    background: #7057e8;
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.details-capacity-fill.full {
+    background: #dc5656;
+}
+
+/* Team Full Button */
+
+.project-details-full-button {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid #f3cccc;
+    border-radius: 10px;
+    background: #fceaea;
+    color: #c34444;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+
+/* Contact Student Page */
+
+.contact-student-page {
+    min-height: 100vh;
+    background: #f8f7ff;
+    padding: 45px 24px 70px;
+}
+
+.contact-student-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.contact-student-back {
+    color: #7057e8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.contact-student-heading {
+    margin: 35px 0 30px;
+}
+
+.contact-student-heading > span {
+    color: #7057e8;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.contact-student-heading h1 {
+    color: #25264b;
+    font-size: 32px;
+    margin: 10px 0;
+}
+
+.contact-student-heading p {
+    color: #77778b;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.contact-student-card {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    background: #ffffff;
+    border: 1px solid #eceaf5;
+    border-radius: 18px;
+    padding: 35px;
+    gap: 35px;
+    box-shadow: 0 8px 30px rgba(37, 38, 75, 0.05);
+}
+
+.contact-student-profile {
+    text-align: center;
+    padding: 20px 10px;
+}
+
+.contact-student-avatar {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0edff;
+    color: #7057e8;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.contact-student-profile h2 {
+    color: #25264b;
+    font-size: 23px;
+    margin-bottom: 8px;
+}
+
+.contact-student-department {
+    color: #77778b;
+    font-size: 14px;
+}
+
+.contact-student-year {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 7px 15px;
+    border-radius: 20px;
+    background: #f0edff;
+    color: #7057e8;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.contact-student-divider {
+    width: 1px;
+    background: #eeedf5;
+}
+
+.contact-student-information {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.contact-student-section h3 {
+    color: #25264b;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.contact-student-section p {
+    color: #77778b;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.contact-student-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.contact-student-tags span {
+    background: #f0edff;
+    color: #7057e8;
+    padding: 8px 13px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.contact-student-tags.interest span {
+    background: #f2f3f8;
+    color: #55566e;
+}
+
+.contact-student-tags small {
+    color: #888;
+}
+
+.contact-student-email-button {
+    display: inline-block;
+    width: fit-content;
+    padding: 13px 24px;
+    background: #7057e8;
+    color: #ffffff;
+    border-radius: 9px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.contact-student-email-button:hover {
+    background: #5941ce;
+}
+
+.contact-student-message {
+    max-width: 700px;
+    margin: 100px auto;
+    padding: 30px;
+    text-align: center;
+    background: white;
+    border-radius: 12px;
+    color: #25264b;
+}
+
+.contact-student-message a {
+    display: inline-block;
+    margin-top: 15px;
+    color: #7057e8;
+    text-decoration: none;
+}
+
+@media (max-width: 700px) {
+    .contact-student-card {
+        grid-template-columns: 1fr;
+        padding: 25px;
+    }
+
+    .contact-student-divider {
+        width: 100%;
+        height: 1px;
+    }
+
+    .contact-student-heading h1 {
+        font-size: 26px;
+    }
+}
+
+/* Fix Contact Student profile layout */
+.contact-student-card {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    align-items: stretch;
+}
+
+.contact-student-profile {
+    border-right: 1px solid #eeedf5;
+}
+
+.contact-student-divider {
+    display: none;
+}
+
+.contact-student-information {
+    grid-column: 2;
+    padding: 10px 15px;
+}
+
+/* Mobile layout */
+@media (max-width: 700px) {
+    .contact-student-card {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-student-profile {
+        border-right: none;
+        border-bottom: 1px solid #eeedf5;
+    }
+
+    .contact-student-information {
+        grid-column: 1;
+        padding: 10px 0;
+    }
+}
+
+.profile-form-group textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 13px 15px;
+    border: 1px solid #e4e2ed;
+    border-radius: 9px;
+    background: #fff;
+    color: #25264b;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    outline: none;
+}
+
+.profile-form-group textarea:focus {
+    border-color: #7057e8;
+    box-shadow: 0 0 0 3px rgba(112, 87, 232, 0.1);
+}
+
+.explore-owner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.explore-delete-button {
+    padding: 10px 16px;
+    border: 1px solid #f0cccc;
+    border-radius: 8px;
+    background: #fff5f5;
+    color: #c34444;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.explore-delete-button:hover {
+    background: #ffe5e5;
+}
+
+.explore-delete-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

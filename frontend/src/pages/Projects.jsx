@@ -8,6 +8,7 @@ function Projects() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [joinMessages, setJoinMessages] = useState({});
+    const [deletingProjects, setDeletingProjects] = useState({});
     const [search, setSearch] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
@@ -19,6 +20,18 @@ function Projects() {
             return null;
         }
     });
+
+    // Get unique team members, including the project creator
+    const getTeamMembers = (project) => {
+        const members = (project.teamMembers || []).map(member =>
+            typeof member === "string" ? member : member?.email
+        );
+
+        return [...new Set([
+            project.creatorEmail,
+            ...members
+        ].filter(Boolean))];
+    };
 
     // Fetch projects
     useEffect(() => {
@@ -121,17 +134,17 @@ function Projects() {
 
             if (response.ok) {
                 setProjects(previousProjects =>
-                    previousProjects.map(project =>
-                        project._id === projectId
-                            ? {
-                                ...project,
-                                teamMembers: [
-                                    ...(project.teamMembers || []),
-                                    user.email
-                                ]
-                            }
-                            : project
-                    )
+                    previousProjects.map(project => {
+                        if (project._id !== projectId) {
+                            return project;
+                        }
+
+                        return {
+                            ...project,
+                            teamMembers: data.teamMembers ||
+                                [...getTeamMembers(project), user.email]
+                        };
+                    })
                 );
             }
 
@@ -141,6 +154,72 @@ function Projects() {
             setJoinMessages(previous => ({
                 ...previous,
                 [projectId]: "Unable to connect to server."
+            }));
+        }
+    };
+
+    // Delete a project
+    const handleDeleteProject = async (projectId, projectTitle) => {
+        const confirmed = window.confirm(
+            `Are you sure you want to delete "${projectTitle}"? This action cannot be undone.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            setJoinMessages(previous => ({
+                ...previous,
+                [projectId]: "Please login again."
+            }));
+            return;
+        }
+
+        setDeletingProjects(previous => ({
+            ...previous,
+            [projectId]: true
+        }));
+
+        try {
+            const response = await fetch(
+                `${API_URL}/api/projects/${projectId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Unable to delete project."
+                );
+            }
+
+            // Remove deleted project from the displayed list
+            setProjects(previousProjects =>
+                previousProjects.filter(
+                    project => project._id !== projectId
+                )
+            );
+
+        } catch (error) {
+            console.error("Error deleting project:", error);
+
+            setJoinMessages(previous => ({
+                ...previous,
+                [projectId]: error.message || "Unable to delete project."
+            }));
+        } finally {
+            setDeletingProjects(previous => ({
+                ...previous,
+                [projectId]: false
             }));
         }
     };
@@ -271,17 +350,23 @@ function Projects() {
 
                     {filteredProjects.map(project => {
 
+                        const members = getTeamMembers(project);
+                        const memberCount = members.length;
+
+                        const maxTeamSize = Number(project.maxTeamSize) || 5;
+
+                        const remainingSpots = Math.max(
+                            0,
+                            maxTeamSize - memberCount
+                        );
+
+                        const isFull = memberCount >= maxTeamSize;
+
                         const isCreator =
                             project.creatorEmail === user?.email;
 
-                        // Check whether current user is already a member
-                        const isMember = (
-                            project.teamMembers || []
-                        ).some(member =>
-                            typeof member === "string"
-                                ? member === user?.email
-                                : member?.email === user?.email
-                        );
+                        const isMember =
+                            !!user?.email && members.includes(user.email);
 
                         return (
                             <article
@@ -297,10 +382,7 @@ function Projects() {
                                     </span>
 
                                     <span className="explore-member-count">
-                                        {(project.teamMembers || []).length}{" "}
-                                        {(project.teamMembers || []).length === 1
-                                            ? "member"
-                                            : "members"}
+                                        {memberCount}/{maxTeamSize} members
                                     </span>
 
                                 </div>
@@ -331,6 +413,41 @@ function Projects() {
 
                                     </div>
 
+                                    {/* Team Capacity */}
+                                    <div className="explore-team-capacity">
+
+                                        <div className="explore-capacity-info">
+                                            <span>
+                                                {isFull
+                                                    ? "Team is full"
+                                                    : `${remainingSpots} ${
+                                                        remainingSpots === 1
+                                                            ? "spot"
+                                                            : "spots"
+                                                    } available`}
+                                            </span>
+
+                                            <strong>
+                                                {memberCount}/{maxTeamSize}
+                                            </strong>
+                                        </div>
+
+                                        <div className="explore-capacity-track">
+                                            <div
+                                                className={`explore-capacity-fill ${
+                                                    isFull ? "full" : ""
+                                                }`}
+                                                style={{
+                                                    width: `${Math.min(
+                                                        100,
+                                                        (memberCount / maxTeamSize) * 100
+                                                    )}%`
+                                                }}
+                                            />
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
                                 {/* Card Footer */}
@@ -346,12 +463,31 @@ function Projects() {
 
                                     {isCreator ? (
 
-                                        <Link
-                                            to={`/edit-project/${project._id}`}
-                                            className="explore-card-button"
-                                        >
-                                            Edit Project
-                                        </Link>
+                                        <div className="explore-owner-actions">
+
+                                            <Link
+                                                to={`/edit-project/${project._id}`}
+                                                className="explore-card-button"
+                                            >
+                                                Edit Project
+                                            </Link>
+
+                                            <button
+                                                className="explore-delete-button"
+                                                onClick={() =>
+                                                    handleDeleteProject(
+                                                        project._id,
+                                                        project.title
+                                                    )
+                                                }
+                                                disabled={!!deletingProjects[project._id]}
+                                            >
+                                                {deletingProjects[project._id]
+                                                    ? "Deleting..."
+                                                    : "Delete"}
+                                            </button>
+
+                                        </div>
 
                                     ) : isMember ? (
 
@@ -360,6 +496,15 @@ function Projects() {
                                             disabled
                                         >
                                             Already Joined
+                                        </button>
+
+                                    ) : isFull ? (
+
+                                        <button
+                                            className="explore-card-button team-full"
+                                            disabled
+                                        >
+                                            Team Full
                                         </button>
 
                                     ) : user ? (
@@ -386,7 +531,7 @@ function Projects() {
 
                                 </div>
 
-                                {/* Join Message */}
+                                {/* Join or Delete Message */}
                                 {joinMessages[project._id] && (
                                     <p className="explore-join-message">
                                         {joinMessages[project._id]}

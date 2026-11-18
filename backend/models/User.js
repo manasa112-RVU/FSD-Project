@@ -38,6 +38,13 @@ const userSchema = new mongoose.Schema(
         interests: {
             type: [String],
             default: []
+        },
+
+        // Student introduction
+        aboutMe: {
+            type: String,
+            default: "",
+            maxlength: 500
         }
     },
     {

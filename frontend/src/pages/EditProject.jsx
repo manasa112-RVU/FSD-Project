@@ -12,7 +12,8 @@ function EditProject() {
         description: "",
         category: "",
         skillsRequired: [],
-        teamMembers: []
+        teamMembers: [],
+        maxTeamSize: 5
     });
 
     const [skills, setSkills] = useState("");
@@ -21,6 +22,16 @@ function EditProject() {
     const [message, setMessage] = useState("");
 
     const user = JSON.parse(localStorage.getItem("user") || "null");
+
+    // Include creator and remove duplicate team members
+    const getUniqueMembers = (members, creatorEmail) => {
+        return [...new Set([
+            creatorEmail,
+            ...(members || []).map(member =>
+                typeof member === "string" ? member : member?.email
+            )
+        ].filter(Boolean))];
+    };
 
     // Fetch selected project
     useEffect(() => {
@@ -47,12 +58,18 @@ function EditProject() {
                     return;
                 }
 
+                const members = getUniqueMembers(
+                    selectedProject.teamMembers,
+                    selectedProject.creatorEmail
+                );
+
                 setProject({
                     title: selectedProject.title || "",
                     description: selectedProject.description || "",
                     category: selectedProject.category || "",
                     skillsRequired: selectedProject.skillsRequired || [],
-                    teamMembers: selectedProject.teamMembers || []
+                    teamMembers: members,
+                    maxTeamSize: selectedProject.maxTeamSize || 5
                 });
 
                 setSkills(
@@ -93,6 +110,20 @@ function EditProject() {
             return;
         }
 
+        const teamSize = Number(project.maxTeamSize);
+
+        if (!Number.isInteger(teamSize) || teamSize < 1) {
+            setMessage("Please enter a valid maximum team size.");
+            return;
+        }
+
+        if (teamSize < project.teamMembers.length) {
+            setMessage(
+                `Maximum team size cannot be less than the current ${project.teamMembers.length} team members.`
+            );
+            return;
+        }
+
         setSaving(true);
 
         try {
@@ -111,7 +142,8 @@ function EditProject() {
                         skillsRequired: skills
                             .split(",")
                             .map(skill => skill.trim())
-                            .filter(Boolean)
+                            .filter(Boolean),
+                        maxTeamSize: teamSize
                     })
                 }
             );
@@ -156,6 +188,11 @@ function EditProject() {
         );
     }
 
+    const remainingSpots = Math.max(
+        0,
+        Number(project.maxTeamSize) - project.teamMembers.length
+    );
+
     return (
         <div className="edit-project-page">
 
@@ -165,7 +202,6 @@ function EditProject() {
                     ← Back to Projects
                 </Link>
 
-                {/* Page Heading */}
                 <div className="edit-project-heading">
                     <span>PROJECT MANAGEMENT</span>
                     <h1>Edit Your Project</h1>
@@ -233,6 +269,29 @@ function EditProject() {
                                     />
                                 </div>
 
+                                {/* Maximum Team Size */}
+                                <div className="edit-project-field">
+                                    <label>Maximum Team Size</label>
+
+                                    <input
+                                        type="number"
+                                        name="maxTeamSize"
+                                        min={project.teamMembers.length}
+                                        step="1"
+                                        value={project.maxTeamSize}
+                                        onChange={handleChange}
+                                        required
+                                    />
+
+                                    <small>
+                                        Includes you as the project creator.
+                                        You currently have {project.teamMembers.length} members.
+                                        {remainingSpots > 0
+                                            ? ` ${remainingSpots} spots are currently available.`
+                                            : " Your team is full."}
+                                    </small>
+                                </div>
+
                                 <div className="edit-project-field">
                                     <label>Required Skills</label>
 
@@ -292,7 +351,9 @@ function EditProject() {
 
                             <div className="edit-team-count">
                                 <strong>{project.teamMembers.length}</strong>
-                                <span>Team Members</span>
+                                <span>
+                                    / {project.maxTeamSize} Team Members
+                                </span>
                             </div>
 
                             <div className="edit-team-list">
@@ -301,7 +362,7 @@ function EditProject() {
                                     project.teamMembers.map((member, index) => (
                                         <div
                                             className="edit-team-member"
-                                            key={member?._id || member?.email || index}
+                                            key={member || index}
                                         >
                                             <div className="edit-team-avatar">
                                                 {getInitial(member)}

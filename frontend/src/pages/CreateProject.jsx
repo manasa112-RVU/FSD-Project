@@ -8,7 +8,8 @@ function CreateProject() {
         title: "",
         description: "",
         category: "",
-        skillsRequired: ""
+        skillsRequired: "",
+        maxTeamSize: "5"
     });
 
     const [message, setMessage] = useState("");
@@ -35,6 +36,13 @@ function CreateProject() {
             return;
         }
 
+        const teamSize = Number(formData.maxTeamSize);
+
+        if (!Number.isInteger(teamSize) || teamSize < 1) {
+            setError("Please enter a valid maximum team size.");
+            return;
+        }
+
         const projectData = {
             title: formData.title,
             description: formData.description,
@@ -42,7 +50,8 @@ function CreateProject() {
             skillsRequired: formData.skillsRequired
                 .split(",")
                 .map(skill => skill.trim())
-                .filter(skill => skill !== "")
+                .filter(skill => skill !== ""),
+            maxTeamSize: teamSize
         };
 
         setLoading(true);
@@ -69,7 +78,8 @@ function CreateProject() {
                     title: "",
                     description: "",
                     category: "",
-                    skillsRequired: ""
+                    skillsRequired: "",
+                    maxTeamSize: "5"
                 });
             } else {
                 setError(data.message || "Unable to create project.");
@@ -92,7 +102,6 @@ function CreateProject() {
                     ← Back to Dashboard
                 </Link>
 
-                {/* Page Heading */}
                 <div className="create-page-heading">
                     <span>BRING YOUR IDEA TO LIFE</span>
                     <h1>Create a New Project</h1>
@@ -157,6 +166,27 @@ function CreateProject() {
                                     <option value="IoT">IoT</option>
                                     <option value="Other">Other</option>
                                 </select>
+                            </div>
+
+                            {/* Maximum Team Size */}
+                            <div className="create-form-group">
+                                <label>Maximum Team Size</label>
+
+                                <input
+                                    type="number"
+                                    name="maxTeamSize"
+                                    min="1"
+                                    step="1"
+                                    placeholder="e.g. 5"
+                                    value={formData.maxTeamSize}
+                                    onChange={handleChange}
+                                    required
+                                />
+
+                                <small>
+                                    Include yourself (the project creator) in this number.
+                                    For example, 5 means you and 4 other students.
+                                </small>
                             </div>
 
                             <div className="create-form-group">
