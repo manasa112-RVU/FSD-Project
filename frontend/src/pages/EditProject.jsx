@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import API_URL from "../api";
 
 function EditProject() {
@@ -11,23 +11,22 @@ function EditProject() {
         title: "",
         description: "",
         category: "",
-        skillsRequired: []
+        skillsRequired: [],
+        teamMembers: []
     });
 
     const [skills, setSkills] = useState("");
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
 
     const user = JSON.parse(localStorage.getItem("user") || "null");
 
-    // Fetch the selected project
+    // Fetch selected project
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                const response = await fetch(
-                    `${API_URL}/api/projects`
-                );
-
+                const response = await fetch(`${API_URL}/api/projects`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -35,7 +34,7 @@ function EditProject() {
                 }
 
                 const selectedProject = data.find(
-                    (item) => item._id === id
+                    item => item._id === id
                 );
 
                 if (!selectedProject) {
@@ -49,10 +48,11 @@ function EditProject() {
                 }
 
                 setProject({
-                    title: selectedProject.title,
-                    description: selectedProject.description,
-                    category: selectedProject.category,
-                    skillsRequired: selectedProject.skillsRequired || []
+                    title: selectedProject.title || "",
+                    description: selectedProject.description || "",
+                    category: selectedProject.category || "",
+                    skillsRequired: selectedProject.skillsRequired || [],
+                    teamMembers: selectedProject.teamMembers || []
                 });
 
                 setSkills(
@@ -70,7 +70,7 @@ function EditProject() {
         fetchProject();
     }, [id, user?.email]);
 
-    // Handle form changes
+    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -84,12 +84,16 @@ function EditProject() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        setMessage("");
+
         const token = localStorage.getItem("token");
 
         if (!token) {
             setMessage("Please login again.");
             return;
         }
+
+        setSaving(true);
 
         try {
             const response = await fetch(
@@ -124,73 +128,207 @@ function EditProject() {
         } catch (error) {
             console.error("Error updating project:", error);
             setMessage("Something went wrong. Please try again.");
+        } finally {
+            setSaving(false);
         }
     };
 
+    // Display team member information safely
+    const getMemberName = (member) => {
+        if (typeof member === "string") {
+            return member;
+        }
+
+        return member?.name || member?.email || "Team member";
+    };
+
+    const getInitial = (member) => {
+        return getMemberName(member).charAt(0).toUpperCase();
+    };
+
     if (loading) {
-        return <p>Loading project...</p>;
+        return (
+            <div className="edit-project-page">
+                <div className="edit-project-loading">
+                    Loading project...
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="create-project-page">
-            <div className="create-project-card">
+        <div className="edit-project-page">
 
-                <h2>Edit Project</h2>
-                <p>Update your project details below.</p>
+            <div className="edit-project-container">
 
-                {message && (
-                    <p className="error-message">{message}</p>
-                )}
+                <Link to="/projects" className="edit-project-back">
+                    ← Back to Projects
+                </Link>
 
-                {!message && (
-                    <form onSubmit={handleSubmit}>
+                {/* Page Heading */}
+                <div className="edit-project-heading">
+                    <span>PROJECT MANAGEMENT</span>
+                    <h1>Edit Your Project</h1>
+                    <p>
+                        Update your project information and keep your
+                        team aligned with your latest ideas.
+                    </p>
+                </div>
 
-                        <label>Project Title</label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={project.title}
-                            onChange={handleChange}
-                            required
-                        />
+                {message ? (
+                    <div className="edit-project-message">
+                        <p>{message}</p>
+                        <Link to="/projects">Return to Projects →</Link>
+                    </div>
+                ) : (
 
-                        <label>Description</label>
-                        <textarea
-                            name="description"
-                            value={project.description}
-                            onChange={handleChange}
-                            required
-                        />
+                    <div className="edit-project-layout">
 
-                        <label>Category</label>
-                        <input
-                            type="text"
-                            name="category"
-                            value={project.category}
-                            onChange={handleChange}
-                            required
-                        />
+                        {/* Edit Form */}
+                        <div className="edit-project-form-card">
 
-                        <label>Required Skills</label>
-                        <input
-                            type="text"
-                            value={skills}
-                            onChange={(e) => setSkills(e.target.value)}
-                            placeholder="React, Python, MongoDB"
-                        />
+                            <div className="edit-project-form-heading">
+                                <h2>Project Details</h2>
+                                <p>Make changes to your project below.</p>
+                            </div>
 
-                        <button type="submit">
-                            Save Changes
-                        </button>
+                            <form onSubmit={handleSubmit}>
 
-                        <button
-                            type="button"
-                            onClick={() => navigate("/projects")}
-                        >
-                            Cancel
-                        </button>
+                                <div className="edit-project-field">
+                                    <label>Project Title</label>
 
-                    </form>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        value={project.title}
+                                        onChange={handleChange}
+                                        placeholder="Enter project title"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="edit-project-field">
+                                    <label>Description</label>
+
+                                    <textarea
+                                        name="description"
+                                        value={project.description}
+                                        onChange={handleChange}
+                                        placeholder="Describe your project..."
+                                        rows="6"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="edit-project-field">
+                                    <label>Category</label>
+
+                                    <input
+                                        type="text"
+                                        name="category"
+                                        value={project.category}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Web Development"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="edit-project-field">
+                                    <label>Required Skills</label>
+
+                                    <input
+                                        type="text"
+                                        value={skills}
+                                        onChange={e => setSkills(e.target.value)}
+                                        placeholder="React, Python, MongoDB"
+                                    />
+
+                                    <small>
+                                        Separate each skill with a comma.
+                                    </small>
+                                </div>
+
+                                {message && (
+                                    <div className="edit-project-error">
+                                        {message}
+                                    </div>
+                                )}
+
+                                <div className="edit-project-actions">
+
+                                    <button
+                                        type="button"
+                                        className="edit-project-cancel"
+                                        onClick={() => navigate("/projects")}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        className="edit-project-save"
+                                        disabled={saving}
+                                    >
+                                        {saving ? "Saving..." : "Save Changes →"}
+                                    </button>
+
+                                </div>
+
+                            </form>
+                        </div>
+
+                        {/* Team Members Sidebar */}
+                        <aside className="edit-project-sidebar">
+
+                            <div className="edit-team-icon">
+                                👥
+                            </div>
+
+                            <h2>Your Team</h2>
+
+                            <p className="edit-team-description">
+                                Students currently associated with this project.
+                            </p>
+
+                            <div className="edit-team-count">
+                                <strong>{project.teamMembers.length}</strong>
+                                <span>Team Members</span>
+                            </div>
+
+                            <div className="edit-team-list">
+
+                                {project.teamMembers.length > 0 ? (
+                                    project.teamMembers.map((member, index) => (
+                                        <div
+                                            className="edit-team-member"
+                                            key={member?._id || member?.email || index}
+                                        >
+                                            <div className="edit-team-avatar">
+                                                {getInitial(member)}
+                                            </div>
+
+                                            <span>{getMemberName(member)}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="edit-team-empty">
+                                        No team members have joined yet.
+                                    </div>
+                                )}
+
+                            </div>
+
+                            <div className="edit-team-tip">
+                                <span>💡</span>
+                                <p>
+                                    Keep your project details updated so
+                                    your teammates know what you're building.
+                                </p>
+                            </div>
+
+                        </aside>
+
+                    </div>
                 )}
 
             </div>

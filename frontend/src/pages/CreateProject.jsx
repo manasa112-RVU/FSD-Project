@@ -13,6 +13,7 @@ function CreateProject() {
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -43,6 +44,8 @@ function CreateProject() {
                 .map(skill => skill.trim())
                 .filter(skill => skill !== "")
         };
+
+        setLoading(true);
 
         try {
             const response = await fetch(
@@ -75,79 +78,204 @@ function CreateProject() {
         } catch (error) {
             console.error("Error creating project:", error);
             setError("Unable to connect to the server.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="create-project-page">
-            <div className="create-project-card">
+        <div className="create-page">
 
-                <Link to="/dashboard" className="back-home">
+            <div className="create-container">
+
+                <Link to="/dashboard" className="create-back-link">
                     ← Back to Dashboard
                 </Link>
 
-                <h1>Create a New Project</h1>
-                <p>Share your idea and find teammates to build it.</p>
+                {/* Page Heading */}
+                <div className="create-page-heading">
+                    <span>BRING YOUR IDEA TO LIFE</span>
+                    <h1>Create a New Project</h1>
+                    <p>
+                        Share your idea, showcase the skills you need
+                        and find students to build it together.
+                    </p>
+                </div>
 
-                <form onSubmit={handleSubmit}>
+                <div className="create-layout">
 
-                    <label>Project Title</label>
-                    <input
-                        type="text"
-                        name="title"
-                        placeholder="Enter project title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                    />
+                    {/* Project Form */}
+                    <div className="create-form-card">
 
-                    <label>Description</label>
-                    <textarea
-                        name="description"
-                        placeholder="Describe your project..."
-                        value={formData.description}
-                        onChange={handleChange}
-                        required
-                    />
+                        <div className="create-form-heading">
+                            <h2>Project Information</h2>
+                            <p>Fill in the details about your project.</p>
+                        </div>
 
-                    <label>Category</label>
-                    <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Category</option>
-                        <option value="Web Development">Web Development</option>
-                        <option value="Data Science">Data Science</option>
-                        <option value="Machine Learning">Machine Learning</option>
-                        <option value="Mobile App">Mobile App</option>
-                        <option value="IoT">IoT</option>
-                        <option value="Other">Other</option>
-                    </select>
+                        <form onSubmit={handleSubmit}>
 
-                    <label>Required Skills</label>
-                    <input
-                        type="text"
-                        name="skillsRequired"
-                        placeholder="React, Python, MongoDB"
-                        value={formData.skillsRequired}
-                        onChange={handleChange}
-                    />
+                            <div className="create-form-group">
+                                <label>Project Title</label>
 
-                    {message && (
-                        <p className="success-message">{message}</p>
-                    )}
+                                <input
+                                    type="text"
+                                    name="title"
+                                    placeholder="e.g. Smart Campus Management System"
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
 
-                    {error && (
-                        <p className="error-message">{error}</p>
-                    )}
+                            <div className="create-form-group">
+                                <label>Project Description</label>
 
-                    <button type="submit" className="auth-button">
-                        Create Project
-                    </button>
+                                <textarea
+                                    name="description"
+                                    placeholder="Explain your project idea, its purpose and what you want to build..."
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows="5"
+                                    required
+                                />
+                            </div>
 
-                </form>
+                            <div className="create-form-group">
+                                <label>Project Category</label>
+
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">Select Category</option>
+                                    <option value="Web Development">Web Development</option>
+                                    <option value="Data Science">Data Science</option>
+                                    <option value="Machine Learning">Machine Learning</option>
+                                    <option value="Mobile App">Mobile App</option>
+                                    <option value="IoT">IoT</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div className="create-form-group">
+                                <label>Required Skills</label>
+
+                                <input
+                                    type="text"
+                                    name="skillsRequired"
+                                    placeholder="React, Python, MongoDB"
+                                    value={formData.skillsRequired}
+                                    onChange={handleChange}
+                                />
+
+                                <small>
+                                    Separate each skill with a comma.
+                                </small>
+                            </div>
+
+                            {message && (
+                                <div className="create-success">
+                                    ✓ {message}
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="create-error">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="create-form-actions">
+
+                                <Link
+                                    to="/dashboard"
+                                    className="create-cancel-button"
+                                >
+                                    Cancel
+                                </Link>
+
+                                <button
+                                    type="submit"
+                                    className="create-submit-button"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Creating..." : "Create Project →"}
+                                </button>
+
+                            </div>
+
+                        </form>
+                    </div>
+
+                    {/* Tips Sidebar */}
+                    <aside className="create-tips-card">
+
+                        <div className="create-tips-icon">
+                            ✦
+                        </div>
+
+                        <h2>Tips for a Great Project</h2>
+
+                        <p className="create-tips-intro">
+                            Make your project stand out and attract
+                            the right teammates.
+                        </p>
+
+                        <div className="create-tip">
+                            <span>01</span>
+                            <div>
+                                <h3>Choose a clear title</h3>
+                                <p>
+                                    Use a short and meaningful name
+                                    that explains your idea.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="create-tip">
+                            <span>02</span>
+                            <div>
+                                <h3>Explain your idea</h3>
+                                <p>
+                                    Describe what you want to build
+                                    and the problem it solves.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="create-tip">
+                            <span>03</span>
+                            <div>
+                                <h3>Select the right category</h3>
+                                <p>
+                                    Choose the category that best
+                                    matches your project.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="create-tip">
+                            <span>04</span>
+                            <div>
+                                <h3>List required skills</h3>
+                                <p>
+                                    Mention the technologies and
+                                    skills your teammates should know.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="create-tips-footer">
+                            <span>💡</span>
+                            Great ideas become better when
+                            people build them together.
+                        </div>
+
+                    </aside>
+
+                </div>
             </div>
         </div>
     );

@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
@@ -6,6 +7,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CreateProject from "./pages/CreateProject";
 import Projects from "./pages/Projects";
+import ProjectDetails from "./pages/ProjectDetails";
 import Teammates from "./pages/Teammates";
 import MyTeams from "./pages/MyTeams";
 import EditProfile from "./pages/EditProfile";
@@ -28,6 +30,7 @@ function App() {
             {/* Projects */}
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/project/:id" element={<ProjectDetails />} />
             <Route path="/edit-project/:id" element={<EditProject />} />
 
             {/* Team Management */}
@@ -41,7 +44,11 @@ function App() {
             {/* Fallback */}
             <Route
                 path="*"
-                element={<h2 style={{ textAlign: "center", marginTop: "50px" }}>404 - Page Not Found</h2>}
+                element={
+                    <h2 style={{ textAlign: "center", marginTop: "50px" }}>
+                        404 - Page Not Found
+                    </h2>
+                }
             />
         </Routes>
     );

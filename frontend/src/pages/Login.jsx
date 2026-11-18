@@ -3,17 +3,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
 
-
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
+        setLoading(true);
 
         try {
             const response = await fetch(
@@ -41,71 +43,163 @@ function Login() {
 
                 navigate("/dashboard");
             } else {
-                setError(data.message);
+                setError(data.message || "Invalid email or password.");
             }
 
-        } catch  {
-            setError("Unable to connect to server.");
+        } catch {
+            setError("Unable to connect to server. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="auth-container">
+        <div className="auth-modern-page">
 
-            <div className="auth-card">
+            {/* Left Information Panel */}
+            <section className="auth-modern-panel">
 
-                <Link to="/" className="auth-logo">
+                <Link to="/" className="auth-modern-brand">
                     TeamSphere<span>.</span>
                 </Link>
 
-                <h2>Welcome Back!</h2>
+                <div className="auth-panel-content">
 
-                <p className="auth-subtitle">
-                    Login to continue your projects.
+                    <span className="auth-panel-label">
+                        STUDENT COLLABORATION PLATFORM
+                    </span>
+
+                    <h1>
+                        Great ideas are built together.
+                    </h1>
+
+                    <p>
+                        Find the right teammates, discover exciting
+                        projects and turn your ideas into reality.
+                    </p>
+
+                    <div className="auth-panel-divider"></div>
+
+                    <div className="auth-panel-footer">
+                        <span>Connect</span>
+                        <span>Collaborate</span>
+                        <span>Create</span>
+                    </div>
+
+                </div>
+
+                <p className="auth-panel-copyright">
+                    © 2026 TeamSphere. All rights reserved.
                 </p>
 
-                <form onSubmit={handleLogin}>
+            </section>
 
-                    <label>Email Address</label>
+            {/* Right Login Section */}
+            <section className="auth-modern-form-section">
 
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+                <div className="auth-modern-form-wrapper">
 
-                    <label>Password</label>
+                    <Link to="/" className="auth-mobile-brand">
+                        TeamSphere<span>.</span>
+                    </Link>
 
-                    <input
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                    <div className="auth-form-heading">
 
-                    {error && (
-                        <p className="error-message">{error}</p>
-                    )}
+                        <span className="auth-form-label">
+                            WELCOME BACK
+                        </span>
 
-                    <button type="submit" className="auth-button">
-                        Login
-                    </button>
+                        <h2>Sign in to your account</h2>
 
-                </form>
+                        <p>
+                            Enter your details to access your workspace.
+                        </p>
 
-                <p className="auth-footer">
-                    Don't have an account?
-                    <Link to="/register"> Register</Link>
-                </p>
+                    </div>
 
-                <Link to="/" className="back-home">
-                    ← Back to Home
-                </Link>
+                    <form
+                        onSubmit={handleLogin}
+                        className="auth-modern-form"
+                    >
 
-            </div>
+                        <div className="auth-field">
+
+                            <label htmlFor="login-email">
+                                Email Address
+                            </label>
+
+                            <input
+                                id="login-email"
+                                type="email"
+                                placeholder="Enter your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                autoComplete="email"
+                                required
+                            />
+
+                        </div>
+
+                        <div className="auth-field">
+
+                            <label htmlFor="login-password">
+                                Password
+                            </label>
+
+                            <div className="auth-password-wrapper">
+
+                                <input
+                                    id="login-password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete="current-password"
+                                    required
+                                />
+
+                                <button
+                                    type="button"
+                                    className="auth-password-toggle"
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
+                                >
+                                    {showPassword ? "Hide" : "Show"}
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        {error && (
+                            <p className="auth-modern-error">
+                                {error}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="auth-modern-submit"
+                            disabled={loading}
+                        >
+                            {loading ? "Signing in..." : "Sign In"}
+                        </button>
+
+                    </form>
+
+                    <div className="auth-modern-switch">
+                        Don't have an account?
+                        <Link to="/register"> Create an account</Link>
+                    </div>
+
+                    <Link to="/" className="auth-modern-back">
+                        ← Back to Home
+                    </Link>
+
+                </div>
+
+            </section>
 
         </div>
     );

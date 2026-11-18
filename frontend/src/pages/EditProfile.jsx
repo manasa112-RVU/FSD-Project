@@ -24,6 +24,7 @@ function EditProfile() {
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -44,6 +45,8 @@ function EditProfile() {
             setError("Please login again.");
             return;
         }
+
+        setLoading(true);
 
         try {
             const response = await fetch(
@@ -92,103 +95,216 @@ function EditProfile() {
         } catch (error) {
             console.error("Error updating profile:", error);
             setError("Unable to connect to server.");
+        } finally {
+            setLoading(false);
         }
     };
 
     if (!user) {
         return (
-            <div className="auth-container">
-                <div className="auth-card">
+            <div className="profile-edit-page">
+                <div className="profile-edit-card">
                     <h2>Please Login</h2>
-                    <Link to="/login">Go to Login</Link>
+                    <Link to="/login">Go to Login →</Link>
                 </div>
             </div>
         );
     }
 
-    return (
-        <div className="create-project-page">
-            <div className="create-project-card">
+    const initials = (user.name || "Student")
+        .split(" ")
+        .filter(Boolean)
+        .map(word => word[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 
-                <Link to="/dashboard" className="back-home">
+    return (
+        <div className="profile-edit-page">
+
+            <div className="profile-edit-container">
+
+                <Link to="/dashboard" className="profile-back-link">
                     ← Back to Dashboard
                 </Link>
 
-                <h1>Edit My Profile</h1>
-                <p>Update your academic details, skills and interests.</p>
+                {/* Page Heading */}
+                <div className="profile-edit-heading">
+                    <span>YOUR ACCOUNT</span>
+                    <h1>Edit Your Profile</h1>
+                    <p>
+                        Keep your academic information and skills
+                        up to date so other students can discover you.
+                    </p>
+                </div>
 
-                <form onSubmit={handleSubmit}>
+                <div className="profile-edit-layout">
 
-                    <label>Name</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                    />
+                    {/* Profile Summary */}
+                    <aside className="profile-edit-sidebar">
 
-                    <label>Email Address</label>
-                    <input
-                        type="email"
-                        value={user.email}
-                        disabled
-                    />
+                        <div className="profile-avatar">
+                            {initials}
+                        </div>
 
-                    <label>Department</label>
-                    <input
-                        type="text"
-                        name="department"
-                        value={formData.department}
-                        onChange={handleChange}
-                        required
-                    />
+                        <h2>{user.name}</h2>
+                        <p className="profile-user-email">
+                            {user.email}
+                        </p>
 
-                    <label>Year</label>
-                    <select
-                        name="year"
-                        value={formData.year}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Year</option>
-                        <option value="1">1st Year</option>
-                        <option value="2">2nd Year</option>
-                        <option value="3">3rd Year</option>
-                        <option value="4">4th Year</option>
-                    </select>
+                        <div className="profile-sidebar-divider"></div>
 
-                    <label>Skills</label>
-                    <input
-                        type="text"
-                        name="skills"
-                        value={formData.skills}
-                        onChange={handleChange}
-                        placeholder="Python, React, MongoDB"
-                    />
+                        <div className="profile-sidebar-info">
+                            <span>DEPARTMENT</span>
+                            <p>{formData.department || "Not added yet"}</p>
+                        </div>
 
-                    <label>Interests</label>
-                    <input
-                        type="text"
-                        name="interests"
-                        value={formData.interests}
-                        onChange={handleChange}
-                        placeholder="Web Development, AI"
-                    />
+                        <div className="profile-sidebar-info">
+                            <span>ACADEMIC YEAR</span>
+                            <p>
+                                {formData.year
+                                    ? `${formData.year}${formData.year === "1" ? "st" : formData.year === "2" ? "nd" : formData.year === "3" ? "rd" : "th"} Year`
+                                    : "Not added yet"}
+                            </p>
+                        </div>
 
-                    {message && (
-                        <p className="success-message">{message}</p>
-                    )}
+                        <div className="profile-sidebar-note">
+                            <span>💡</span>
+                            <p>
+                                A complete profile helps you connect
+                                with students who share your interests.
+                            </p>
+                        </div>
 
-                    {error && (
-                        <p className="error-message">{error}</p>
-                    )}
+                    </aside>
 
-                    <button type="submit" className="auth-button">
-                        Save Changes
-                    </button>
+                    {/* Edit Form */}
+                    <main className="profile-edit-form-card">
 
-                </form>
+                        <div className="profile-form-heading">
+                            <h2>Personal Information</h2>
+                            <p>Update your details below.</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit}>
+
+                            <div className="profile-form-group">
+                                <label>Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Enter your full name"
+                                    required
+                                />
+                            </div>
+
+                            <div className="profile-form-group">
+                                <label>Email Address</label>
+                                <input
+                                    type="email"
+                                    value={user.email}
+                                    disabled
+                                />
+                                <small>Email address cannot be changed here.</small>
+                            </div>
+
+                            <div className="profile-form-row">
+
+                                <div className="profile-form-group">
+                                    <label>Department</label>
+                                    <input
+                                        type="text"
+                                        name="department"
+                                        value={formData.department}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Computer Science"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="profile-form-group">
+                                    <label>Academic Year</label>
+                                    <select
+                                        name="year"
+                                        value={formData.year}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Select Year</option>
+                                        <option value="1">1st Year</option>
+                                        <option value="2">2nd Year</option>
+                                        <option value="3">3rd Year</option>
+                                        <option value="4">4th Year</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div className="profile-form-group">
+                                <label>Skills</label>
+                                <input
+                                    type="text"
+                                    name="skills"
+                                    value={formData.skills}
+                                    onChange={handleChange}
+                                    placeholder="Python, React, MongoDB"
+                                />
+                                <small>
+                                    Separate each skill with a comma.
+                                </small>
+                            </div>
+
+                            <div className="profile-form-group">
+                                <label>Interests</label>
+                                <input
+                                    type="text"
+                                    name="interests"
+                                    value={formData.interests}
+                                    onChange={handleChange}
+                                    placeholder="Web Development, AI, Data Science"
+                                />
+                                <small>
+                                    Add topics and areas you enjoy exploring.
+                                </small>
+                            </div>
+
+                            {message && (
+                                <div className="profile-success-message">
+                                    ✓ {message}
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="profile-error-message">
+                                    {error}
+                                </div>
+                            )}
+
+                            <div className="profile-form-actions">
+
+                                <Link
+                                    to="/dashboard"
+                                    className="profile-cancel-button"
+                                >
+                                    Cancel
+                                </Link>
+
+                                <button
+                                    type="submit"
+                                    className="profile-save-button"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Saving..." : "Save Changes →"}
+                                </button>
+
+                            </div>
+
+                        </form>
+                    </main>
+
+                </div>
             </div>
         </div>
     );

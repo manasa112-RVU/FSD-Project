@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import API_URL from "../api";
 
@@ -8,6 +8,8 @@ function Projects() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [joinMessages, setJoinMessages] = useState({});
+    const [search, setSearch] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
     const [user] = useState(() => {
         try {
@@ -18,20 +20,18 @@ function Projects() {
         }
     });
 
-    // Fetch all projects
+    // Fetch projects
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const response = await fetch(
-                    `${API_URL}/api/projects`
-                );
+                const response = await fetch(`${API_URL}/api/projects`);
 
                 if (!response.ok) {
                     throw new Error("Unable to fetch projects.");
                 }
 
                 const data = await response.json();
-                setProjects(data);
+                setProjects(Array.isArray(data) ? data : []);
 
             } catch (error) {
                 setError(error.message);
@@ -42,6 +42,47 @@ function Projects() {
 
         fetchProjects();
     }, []);
+
+    // Get unique project categories
+    const categories = useMemo(() => {
+        return [
+            "All Categories",
+            ...new Set(
+                projects
+                    .map(project => project.category)
+                    .filter(Boolean)
+            )
+        ];
+    }, [projects]);
+
+    // Get popular skills
+    const popularSkills = useMemo(() => {
+        return [
+            ...new Set(
+                projects.flatMap(project => project.skillsRequired || [])
+            )
+        ].slice(0, 6);
+    }, [projects]);
+
+    // Search and filter projects
+    const filteredProjects = useMemo(() => {
+        return projects.filter(project => {
+            const searchText = search.toLowerCase();
+
+            const matchesSearch =
+                (project.title || "").toLowerCase().includes(searchText) ||
+                (project.description || "").toLowerCase().includes(searchText) ||
+                (project.skillsRequired || []).some(skill =>
+                    skill.toLowerCase().includes(searchText)
+                );
+
+            const matchesCategory =
+                selectedCategory === "All Categories" ||
+                project.category === selectedCategory;
+
+            return matchesSearch && matchesCategory;
+        });
+    }, [projects, search, selectedCategory]);
 
     // Join a project
     const handleJoinProject = async (projectId) => {
@@ -71,7 +112,11 @@ function Projects() {
 
             setJoinMessages(previous => ({
                 ...previous,
-                [projectId]: data.message
+                [projectId]: data.message || (
+                    response.ok
+                        ? "Successfully joined the project!"
+                        : "Unable to join project."
+                )
             }));
 
             if (response.ok) {
@@ -101,102 +146,282 @@ function Projects() {
     };
 
     return (
-        <div className="projects-page">
+        <div className="explore-page">
 
-            <div className="projects-header">
-                <Link to="/dashboard" className="back-home">
-                    ← Back to Dashboard
-                </Link>
+            {/* Page Heading */}
+            <div className="explore-heading">
 
-                <h1>Explore Projects</h1>
+                <div>
+                    <Link to="/dashboard" className="explore-back-link">
+                        ← Back to Dashboard
+                    </Link>
 
-                <p>
-                    Discover ideas and collaborate with other students.
-                </p>
+                    <h1>Explore Projects</h1>
 
-                <Link to="/create-project" className="auth-button">
+                    <p>
+                        Discover projects from other students and find
+                        opportunities to collaborate.
+                    </p>
+                </div>
+
+                <Link
+                    to="/create-project"
+                    className="explore-create-button"
+                >
                     + Create Project
                 </Link>
+
             </div>
 
-            {loading && <p>Loading projects...</p>}
+            {/* Search and Category Filter */}
+            <div className="explore-filter-bar">
 
+                <div className="explore-search-box">
+                    <span>⌕</span>
+
+                    <input
+                        type="text"
+                        placeholder="Search by project title, skill or keyword"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                </div>
+
+                <select
+                    value={selectedCategory}
+                    onChange={e => setSelectedCategory(e.target.value)}
+                    aria-label="Filter by category"
+                >
+                    {categories.map(category => (
+                        <option key={category} value={category}>
+                            {category}
+                        </option>
+                    ))}
+                </select>
+
+                <button
+                    className="explore-search-button"
+                    onClick={() => setSearch(search.trim())}
+                >
+                    Search
+                </button>
+
+            </div>
+
+            {/* Popular Skills */}
+            {popularSkills.length > 0 && (
+                <div className="explore-popular-skills">
+
+                    <span className="explore-popular-label">
+                        Popular skills:
+                    </span>
+
+                    {popularSkills.map((skill, index) => (
+                        <button
+                            key={index}
+                            className="explore-skill-filter"
+                            onClick={() => setSearch(skill)}
+                        >
+                            {skill}
+                        </button>
+                    ))}
+
+                </div>
+            )}
+
+            {/* Project Count */}
+            <div className="explore-results-heading">
+
+                <span>
+                    Showing {filteredProjects.length}{" "}
+                    {filteredProjects.length === 1 ? "project" : "projects"}
+                </span>
+
+                {(search || selectedCategory !== "All Categories") && (
+                    <button
+                        className="explore-clear-button"
+                        onClick={() => {
+                            setSearch("");
+                            setSelectedCategory("All Categories");
+                        }}
+                    >
+                        Clear filters
+                    </button>
+                )}
+
+            </div>
+
+            {/* Loading Message */}
+            {loading && (
+                <div className="explore-message">
+                    Loading projects...
+                </div>
+            )}
+
+            {/* Error Message */}
             {error && (
-                <p className="error-message">{error}</p>
+                <div className="explore-message explore-error">
+                    {error}
+                </div>
             )}
 
-            {!loading && !error && projects.length === 0 && (
-                <p>No projects available yet.</p>
-            )}
+            {/* Project Cards */}
+            {!loading && !error && filteredProjects.length > 0 && (
+                <div className="explore-project-grid">
 
-            <div className="projects-grid">
+                    {filteredProjects.map(project => {
 
-                {projects.map(project => {
-                    const isCreator =
-                        project.creatorEmail === user?.email;
+                        const isCreator =
+                            project.creatorEmail === user?.email;
 
-                    const isMember =
-                        project.teamMembers?.includes(user?.email);
+                        // Check whether current user is already a member
+                        const isMember = (
+                            project.teamMembers || []
+                        ).some(member =>
+                            typeof member === "string"
+                                ? member === user?.email
+                                : member?.email === user?.email
+                        );
 
-                    return (
-                        <div className="project-card" key={project._id}>
+                        return (
+                            <article
+                                className="explore-project-card"
+                                key={project._id}
+                            >
 
-                            <span className="project-category">
-                                {project.category}
-                            </span>
+                                {/* Category and Member Count */}
+                                <div className="explore-card-top">
 
-                            <h2>{project.title}</h2>
+                                    <span className="explore-category-tag">
+                                        {project.category || "General"}
+                                    </span>
 
-                            <p>{project.description}</p>
+                                    <span className="explore-member-count">
+                                        {(project.teamMembers || []).length}{" "}
+                                        {(project.teamMembers || []).length === 1
+                                            ? "member"
+                                            : "members"}
+                                    </span>
 
-                            <div className="project-skills">
-                                {(project.skillsRequired || []).map(
-                                    (skill, index) => (
-                                        <span key={index}>
-                                            {skill}
-                                        </span>
-                                    )
-                                )}
-                            </div>
+                                </div>
 
-                            <div className="project-creator">
-                                Created by: {project.createdBy}
-                            </div>
-
-                            {isCreator ? (
-                                <>
-                                    <p>Your Project</p>
+                                {/* Project Information */}
+                                <div className="explore-card-content">
 
                                     <Link
-                                        to={`/edit-project/${project._id}`}
-                                        className="auth-button"
+                                        to={`/project/${project._id}`}
+                                        className="explore-project-title"
                                     >
-                                        Edit Project
+                                        {project.title}
                                     </Link>
-                                </>
-                            ) : (
-                                <button
-                                    className="auth-button"
-                                    disabled={isMember || !user}
-                                    onClick={() =>
-                                        handleJoinProject(project._id)
-                                    }
-                                >
-                                    {isMember
-                                        ? "Already Joined"
-                                        : "Join Project"}
-                                </button>
-                            )}
 
-                            {joinMessages[project._id] && (
-                                <p>{joinMessages[project._id]}</p>
-                            )}
+                                    <p className="explore-project-description">
+                                        {project.description}
+                                    </p>
 
-                        </div>
-                    );
-                })}
+                                    <div className="explore-card-skills">
 
-            </div>
+                                        {(project.skillsRequired || []).map(
+                                            (skill, index) => (
+                                                <span key={index}>
+                                                    {skill}
+                                                </span>
+                                            )
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+                                {/* Card Footer */}
+                                <div className="explore-card-footer">
+
+                                    <div className="explore-creator-info">
+                                        <span>Created by</span>
+
+                                        <strong>
+                                            {project.createdBy || "Student"}
+                                        </strong>
+                                    </div>
+
+                                    {isCreator ? (
+
+                                        <Link
+                                            to={`/edit-project/${project._id}`}
+                                            className="explore-card-button"
+                                        >
+                                            Edit Project
+                                        </Link>
+
+                                    ) : isMember ? (
+
+                                        <button
+                                            className="explore-card-button joined"
+                                            disabled
+                                        >
+                                            Already Joined
+                                        </button>
+
+                                    ) : user ? (
+
+                                        <button
+                                            className="explore-card-button"
+                                            onClick={() =>
+                                                handleJoinProject(project._id)
+                                            }
+                                        >
+                                            Join Project
+                                        </button>
+
+                                    ) : (
+
+                                        <Link
+                                            to="/login"
+                                            className="explore-card-button"
+                                        >
+                                            Login to Join
+                                        </Link>
+
+                                    )}
+
+                                </div>
+
+                                {/* Join Message */}
+                                {joinMessages[project._id] && (
+                                    <p className="explore-join-message">
+                                        {joinMessages[project._id]}
+                                    </p>
+                                )}
+
+                            </article>
+                        );
+                    })}
+
+                </div>
+            )}
+
+            {/* No Projects Found */}
+            {!loading && !error && filteredProjects.length === 0 && (
+                <div className="explore-empty-state">
+
+                    <h3>No projects found</h3>
+
+                    <p>
+                        Try another search term or select a different category.
+                    </p>
+
+                    <button
+                        onClick={() => {
+                            setSearch("");
+                            setSelectedCategory("All Categories");
+                        }}
+                    >
+                        Clear filters
+                    </button>
+
+                </div>
+            )}
+
         </div>
     );
 }
